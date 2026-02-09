@@ -151,17 +151,17 @@ function App() {
           <Route exact path="/assign-role" element={<ProtectedRoute allowedRoles={['admin']}><AssignRolePage /></ProtectedRoute>} />
           <Route exact path="/role-access" element={<ProtectedRoute allowedRoles={['admin']}><RoleAccessPage /></ProtectedRoute>} />
 
-          {/* Protected Page Forms - Admin and Editor Only */}
-          <Route exact path="/home-page-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><HomePageFormPage /></ProtectedRoute>} />
-          <Route exact path="/about-page-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><AboutPageFormPage /></ProtectedRoute>} />
-          <Route exact path="/contact-page-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><ContactPageFormPage /></ProtectedRoute>} />
-          <Route exact path="/blog-post-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><BlogPostFormPage /></ProtectedRoute>} />
-          <Route exact path="/csr-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><CsrFormPage /></ProtectedRoute>} />
-          <Route exact path="/gallery-page-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><GalleryPageFormPage /></ProtectedRoute>} />
-          <Route exact path="/industries-page-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><IndustriesPageFormPage /></ProtectedRoute>} />
-          <Route exact path="/service-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><ServiceFormPage /></ProtectedRoute>} />
-          <Route exact path="/individual-service-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><IndividualServiceFormPage /></ProtectedRoute>} />
-          <Route exact path="/seo-scripts-form" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><SeoScriptsFormPage /></ProtectedRoute>} />
+          {/* Protected Page Forms - Admin and Moderator Only */}
+          <Route exact path="/home-page-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><HomePageFormPage /></ProtectedRoute>} />
+          <Route exact path="/about-page-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><AboutPageFormPage /></ProtectedRoute>} />
+          <Route exact path="/contact-page-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><ContactPageFormPage /></ProtectedRoute>} />
+          <Route exact path="/blog-post-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><BlogPostFormPage /></ProtectedRoute>} />
+          <Route exact path="/csr-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><CsrFormPage /></ProtectedRoute>} />
+          <Route exact path="/gallery-page-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><GalleryPageFormPage /></ProtectedRoute>} />
+          <Route exact path="/industries-page-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><IndustriesPageFormPage /></ProtectedRoute>} />
+          <Route exact path="/service-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><ServiceFormPage /></ProtectedRoute>} />
+          <Route exact path="/individual-service-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><IndividualServiceFormPage /></ProtectedRoute>} />
+          <Route exact path="/seo-scripts-form" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><SeoScriptsFormPage /></ProtectedRoute>} />
 
           {/* Protected Page Tables - All Authenticated Users */}
           <Route exact path="/home-page-table" element={<ProtectedRoute><HomePageTablePage /></ProtectedRoute>} />
@@ -173,7 +173,7 @@ function App() {
           <Route exact path="/industries-page-table" element={<ProtectedRoute><IndustriesPageTablePage /></ProtectedRoute>} />
           <Route exact path="/services-page-table" element={<ProtectedRoute><ServicesPageTablePage /></ProtectedRoute>} />
           <Route exact path="/individual-service-table" element={<ProtectedRoute><IndividualServiceTablePage /></ProtectedRoute>} />
-          <Route exact path="/seo-scripts-table" element={<ProtectedRoute allowedRoles={['admin', 'editor']}><SeoScriptsTablePage /></ProtectedRoute>} />
+          <Route exact path="/seo-scripts-table" element={<ProtectedRoute allowedRoles={['admin', 'moderator']}><SeoScriptsTablePage /></ProtectedRoute>} />
 
           {/* Protected General Dashboard Pages */}
           <Route exact path="/alert" element={<ProtectedRoute><AlertPage /></ProtectedRoute>} />

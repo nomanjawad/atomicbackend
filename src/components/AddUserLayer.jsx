@@ -13,7 +13,7 @@ const AddUserLayer = () => {
         fullName: '',
         email: '',
         password: '',
-        role: 'editor'
+        role: 'user'
     });
 
     const handleInputChange = (e) => {
@@ -151,11 +151,12 @@ const AddUserLayer = () => {
                                             value={formData.role}
                                             onChange={handleInputChange}
                                         >
-                                            <option value="editor">Editor</option>
-                                            <option value="viewer">Viewer</option>
+                                            <option value="user">User</option>
+                                            <option value="moderator">Moderator</option>
+                                            <option value="admin">Admin</option>
                                         </select>
                                         <small className="text-secondary-light">
-                                            Admin: Full access | Editor: Can edit, no delete | Viewer: Read-only
+                                            Admin: Full access | Moderator: Can edit, no delete | User: Read-only
                                         </small>
                                     </div>
 

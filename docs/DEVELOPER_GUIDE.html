@@ -1192,7 +1192,7 @@ App.js (Router)
             <pre><code><span class="code-comment">// 1. Route defines the endpoint (routes/blogPosts.js)</span>
 router.<span class="code-function">post</span>(<span class="code-string">'/'</span>,
     authenticate,                  <span class="code-comment">// 2. Check if user is logged in</span>
-    authorize(<span class="code-string">'admin'</span>, <span class="code-string">'editor'</span>),  <span class="code-comment">// 3. Check if user has permission</span>
+    authorize(<span class="code-string">'admin'</span>, <span class="code-string">'moderator'</span>),  <span class="code-comment">// 3. Check if user has permission</span>
     validate(schemas.create),      <span class="code-comment">// 4. Validate request body</span>
     blogPostsController.create     <span class="code-comment">// 5. Execute business logic</span>
 );
@@ -1222,8 +1222,8 @@ router.<span class="code-function">get</span>(<span class="code-string">'/protec
                 <div class="card">
                     <h4>authorize(...roles)</h4>
                     <p>Checks if the user has one of the allowed roles. Must be used after <code>authenticate</code>.</p>
-                    <pre><code><span class="code-comment">// Only admin and editor can access</span>
-router.<span class="code-function">post</span>(<span class="code-string">'/create'</span>, authenticate, authorize(<span class="code-string">'admin'</span>, <span class="code-string">'editor'</span>), handler);</code></pre>
+                    <pre><code><span class="code-comment">// Only admin and moderator can access</span>
+router.<span class="code-function">post</span>(<span class="code-string">'/create'</span>, authenticate, authorize(<span class="code-string">'admin'</span>, <span class="code-string">'moderator'</span>), handler);</code></pre>
                 </div>
                 <div class="card">
                     <h4>validate(schema)</h4>
@@ -1302,9 +1302,9 @@ router.<span class="code-function">get</span>(<span class="code-string">'/public
 /&gt;
 
 &lt;Route
-    path="/editor-page"
+    path="/moderator-page"
     element={
-        &lt;ProtectedRoute allowedRoles={[<span class="code-string">'admin'</span>, <span class="code-string">'editor'</span>]}&gt;
+        &lt;ProtectedRoute allowedRoles={[<span class="code-string">'admin'</span>, <span class="code-string">'moderator'</span>]}&gt;
             &lt;EditorPage /&gt;
         &lt;/ProtectedRoute&gt;
     }
@@ -1339,7 +1339,7 @@ router.<span class="code-function">get</span>(<span class="code-string">'/public
                     <tr>
                         <td><strong>Forms (Edit)</strong></td>
                         <td>/home-page-form, /blog-post-form</td>
-                        <td>Admin, Editor</td>
+                        <td>Admin, Moderator</td>
                     </tr>
                     <tr>
                         <td><strong>Tables (View)</strong></td>
@@ -1516,19 +1516,19 @@ Authorization: Bearer &lt;your-jwt-token&gt;</code></pre>
                         <td><span class="method method-post">POST</span></td>
                         <td class="endpoint">/{resource}</td>
                         <td>Create new item</td>
-                        <td>Admin/Editor</td>
+                        <td>Admin/Moderator</td>
                     </tr>
                     <tr>
                         <td><span class="method method-put">PUT</span></td>
                         <td class="endpoint">/{resource}/:id</td>
                         <td>Update item</td>
-                        <td>Admin/Editor</td>
+                        <td>Admin/Moderator</td>
                     </tr>
                     <tr>
                         <td><span class="method method-delete">DELETE</span></td>
                         <td class="endpoint">/{resource}/:id</td>
                         <td>Delete item</td>
-                        <td>Admin/Editor</td>
+                        <td>Admin/Moderator</td>
                     </tr>
                 </tbody>
             </table>
@@ -1837,8 +1837,8 @@ router.<span class="code-function">get</span>(<span class="code-string">'/'</spa
 router.<span class="code-function">get</span>(<span class="code-string">'/:id'</span>, controller.getById);
 
 <span class="code-comment">// Protected routes</span>
-router.<span class="code-function">post</span>(<span class="code-string">'/'</span>, authenticate, authorize(<span class="code-string">'admin'</span>, <span class="code-string">'editor'</span>), validate(schemas.create), controller.create);
-router.<span class="code-function">put</span>(<span class="code-string">'/:id'</span>, authenticate, authorize(<span class="code-string">'admin'</span>, <span class="code-string">'editor'</span>), validate(schemas.update), controller.update);
+router.<span class="code-function">post</span>(<span class="code-string">'/'</span>, authenticate, authorize(<span class="code-string">'admin'</span>, <span class="code-string">'moderator'</span>), validate(schemas.create), controller.create);
+router.<span class="code-function">put</span>(<span class="code-string">'/:id'</span>, authenticate, authorize(<span class="code-string">'admin'</span>, <span class="code-string">'moderator'</span>), validate(schemas.update), controller.update);
 router.<span class="code-function">delete</span>(<span class="code-string">'/:id'</span>, authenticate, authorize(<span class="code-string">'admin'</span>), controller.delete);
 
 module.exports = router;</code></pre>

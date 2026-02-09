@@ -14,7 +14,7 @@ CREATE TABLE profiles (
   email TEXT UNIQUE NOT NULL,
   full_name TEXT,
   avatar_url TEXT,
-  role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'editor', 'user')),
+  role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'moderator', 'user')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
@@ -180,11 +180,11 @@ ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Published posts are viewable by all" ON blog_posts
   FOR SELECT USING (status = 'published' OR auth.role() = 'authenticated');
 
-CREATE POLICY "Admins and editors can manage posts" ON blog_posts
+CREATE POLICY "Admins and moderators can manage posts" ON blog_posts
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM profiles
-      WHERE id = auth.uid() AND role IN ('admin', 'editor')
+      WHERE id = auth.uid() AND role IN ('admin', 'moderator')
     )
   );
 ```

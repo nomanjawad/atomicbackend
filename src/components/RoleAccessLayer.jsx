@@ -2,7 +2,7 @@ import { Icon } from '@iconify/react/dist/iconify.js';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
-import { ROLE_INFO, getRoleBadgeClass, isAdmin } from '../utils/permissions';
+import { ROLE_INFO, getRoleBadgeClass, isAdmin, canDelete } from '../utils/permissions';
 
 const RoleAccessLayer = () => {
     const { user } = useAuth();
@@ -14,6 +14,7 @@ const RoleAccessLayer = () => {
     const [selectedRole, setSelectedRole] = useState('');
 
     const currentUserIsAdmin = isAdmin(user?.role);
+    const currentUserCanDelete = canDelete(user?.role);
 
     useEffect(() => {
         fetchUsers();
@@ -33,7 +34,7 @@ const RoleAccessLayer = () => {
 
     const handleEditRole = (userToEdit) => {
         setEditingUser(userToEdit);
-        setSelectedRole(userToEdit.role || 'viewer');
+        setSelectedRole(userToEdit.role || 'user');
     };
 
     const handleSaveRole = async () => {
@@ -74,6 +75,20 @@ const RoleAccessLayer = () => {
             setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (err) {
             setMessage({ type: 'error', text: err.message || 'Failed to update status' });
+        }
+    };
+
+    const handleDeleteUser = async (userId) => {
+        if (!currentUserCanDelete) return;
+        if (!window.confirm('Are you sure you want to delete this user?')) return;
+
+        try {
+            await userAPI.delete(userId);
+            setUsers(users.filter(u => u.id !== userId));
+            setMessage({ type: 'success', text: 'User deleted successfully!' });
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+        } catch (err) {
+            setMessage({ type: 'error', text: err.message || 'Failed to delete user' });
         }
     };
 
@@ -134,11 +149,11 @@ const RoleAccessLayer = () => {
                     <div className="row g-3">
                         {Object.entries(ROLE_INFO).map(([key, info]) => (
                             <div key={key} className="col-md-4">
-                                <div className={`p-16 radius-8 border ${key === 'admin' ? 'border-danger-main bg-danger-50' : key === 'editor' ? 'border-warning-main bg-warning-50' : 'border-info-main bg-info-50'}`}>
+                                <div className={`p-16 radius-8 border ${key === 'admin' ? 'border-danger-main bg-danger-50' : key === 'moderator' ? 'border-warning-main bg-warning-50' : 'border-info-main bg-info-50'}`}>
                                     <div className="d-flex align-items-center gap-8 mb-8">
                                         <Icon
-                                            icon={key === 'admin' ? 'mdi:shield-crown' : key === 'editor' ? 'mdi:pencil' : 'mdi:eye'}
-                                            className={`text-xl ${key === 'admin' ? 'text-danger-600' : key === 'editor' ? 'text-warning-600' : 'text-info-600'}`}
+                                            icon={key === 'admin' ? 'mdi:shield-crown' : key === 'moderator' ? 'mdi:shield-account' : 'mdi:account'}
+                                            className={`text-xl ${key === 'admin' ? 'text-danger-600' : key === 'moderator' ? 'text-warning-600' : 'text-info-600'}`}
                                         />
                                         <span className="fw-semibold">{info.name}</span>
                                     </div>
@@ -191,7 +206,7 @@ const RoleAccessLayer = () => {
                             <tbody>
                                 {users.length === 0 ? (
                                     <tr>
-                                        <td colSpan="6" className="text-center py-16">
+                                        <td colSpan="7" className="text-center py-16">
                                             No users found
                                         </td>
                                     </tr>
@@ -225,7 +240,7 @@ const RoleAccessLayer = () => {
                                             <td className="text-secondary-light">{u.email}</td>
                                             <td>
                                                 <span className={`px-12 py-4 radius-4 fw-medium text-sm border ${getRoleBadgeClass(u.role)}`}>
-                                                    {ROLE_INFO[u.role?.toLowerCase()]?.name || 'Viewer'}
+                                                    {ROLE_INFO[u.role?.toLowerCase()]?.name || 'User'}
                                                 </span>
                                             </td>
                                             <td className="text-center">
@@ -256,16 +271,28 @@ const RoleAccessLayer = () => {
                                                 {u.id === user?.id ? (
                                                     <span className="text-secondary-light text-sm">—</span>
                                                 ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleEditRole(u)}
-                                                        className="bg-primary-focus text-primary-600 bg-hover-primary-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#editRoleModal"
-                                                        title="Change Role"
-                                                    >
-                                                        <Icon icon="mdi:account-edit" className="text-xl" />
-                                                    </button>
+                                                    <div className="d-flex align-items-center gap-10 justify-content-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleEditRole(u)}
+                                                            className="bg-primary-focus text-primary-600 bg-hover-primary-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#editRoleModal"
+                                                            title="Change Role"
+                                                        >
+                                                            <Icon icon="mdi:account-edit" className="text-xl" />
+                                                        </button>
+                                                        {currentUserCanDelete && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteUser(u.id)}
+                                                                className="bg-danger-focus text-danger-600 bg-hover-danger-200 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                                title="Delete user"
+                                                            >
+                                                                <Icon icon="fluent:delete-24-regular" className="text-xl" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>
@@ -345,8 +372,8 @@ const RoleAccessLayer = () => {
                                                             <div className="flex-grow-1">
                                                                 <div className="d-flex align-items-center gap-8">
                                                                     <Icon
-                                                                        icon={key === 'admin' ? 'mdi:shield-crown' : key === 'editor' ? 'mdi:pencil' : 'mdi:eye'}
-                                                                        className={key === 'admin' ? 'text-danger-600' : key === 'editor' ? 'text-warning-600' : 'text-info-600'}
+                                                                        icon={key === 'admin' ? 'mdi:shield-crown' : key === 'moderator' ? 'mdi:shield-account' : 'mdi:account'}
+                                                                        className={key === 'admin' ? 'text-danger-600' : key === 'moderator' ? 'text-warning-600' : 'text-info-600'}
                                                                     />
                                                                     <span className="fw-semibold">{info.name}</span>
                                                                 </div>

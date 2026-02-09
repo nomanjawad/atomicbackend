@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { canDelete, canManageUsers } from '../utils/permissions';
+import { canDelete, canManageUsers, ROLE_INFO } from '../utils/permissions';
 
 const UsersListLayer = () => {
     const { user: currentUser } = useAuth();
@@ -12,6 +12,13 @@ const UsersListLayer = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('');
+    const [editingUser, setEditingUser] = useState(null);
+    const [editData, setEditData] = useState({
+        full_name: '',
+        role: 'user',
+        is_active: true
+    });
+    const [isSaving, setIsSaving] = useState(false);
 
     // Check permissions
     const userCanDelete = canDelete(currentUser?.role);
@@ -45,6 +52,49 @@ const UsersListLayer = () => {
             setUsers(users.filter(u => u.id !== userId));
         } catch (err) {
             alert(err.message || 'Failed to delete user');
+        }
+    };
+
+    const handleEditUser = (userToEdit) => {
+        if (!userCanManageUsers) {
+            alert('You do not have permission to update users.');
+            return;
+        }
+        setEditingUser(userToEdit);
+        setEditData({
+            full_name: userToEdit.full_name || '',
+            role: userToEdit.role || 'user',
+            is_active: userToEdit.is_active !== false
+        });
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setEditData((prev) => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+
+    const handleSaveUser = async () => {
+        if (!editingUser || !userCanManageUsers) return;
+        setIsSaving(true);
+        try {
+            await userAPI.update(editingUser.id, {
+                full_name: editData.full_name,
+                role: editData.role,
+                is_active: editData.is_active
+            });
+            setUsers(users.map(u =>
+                u.id === editingUser.id
+                    ? { ...u, full_name: editData.full_name, role: editData.role, is_active: editData.is_active }
+                    : u
+            ));
+            setEditingUser(null);
+        } catch (err) {
+            alert(err.message || 'Failed to update user');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -215,6 +265,21 @@ const UsersListLayer = () => {
                                                         className="icon text-xl"
                                                     />
                                                 </Link>
+                                                {userCanManageUsers && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleEditUser(user)}
+                                                        className="bg-primary-focus bg-hover-primary-200 text-primary-600 fw-medium w-40-px h-40-px d-flex justify-content-center align-items-center rounded-circle"
+                                                        title="Edit user"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#editUserModal"
+                                                    >
+                                                        <Icon
+                                                            icon="mdi:pencil"
+                                                            className="menu-icon"
+                                                        />
+                                                    </button>
+                                                )}
                                                 {userCanDelete && (
                                                     <button
                                                         type="button"
@@ -241,6 +306,98 @@ const UsersListLayer = () => {
                         <span>Showing {filteredUsers.length} of {users.length} entries</span>
                     </div>
                 )}
+            </div>
+            {/* Edit User Modal */}
+            <div
+                className="modal fade"
+                id="editUserModal"
+                tabIndex={-1}
+                aria-labelledby="editUserModalLabel"
+                aria-hidden="true"
+            >
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content radius-16 bg-base">
+                        <div className="modal-header py-16 px-24 border border-top-0 border-start-0 border-end-0">
+                            <h1 className="modal-title fs-5" id="editUserModalLabel">
+                                <Icon icon="mdi:pencil" className="me-8" />
+                                Edit User
+                            </h1>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                            />
+                        </div>
+                        <div className="modal-body p-24">
+                            {editingUser && (
+                                <>
+                                    <div className="mb-16">
+                                        <label className="form-label fw-semibold text-primary-light text-sm mb-8">
+                                            Full Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="form-control radius-8"
+                                            name="full_name"
+                                            value={editData.full_name}
+                                            onChange={handleEditChange}
+                                            placeholder="Enter full name"
+                                        />
+                                    </div>
+                                    <div className="mb-16">
+                                        <label className="form-label fw-semibold text-primary-light text-sm mb-8">
+                                            Role
+                                        </label>
+                                        <select
+                                            className="form-select radius-8"
+                                            name="role"
+                                            value={editData.role}
+                                            onChange={handleEditChange}
+                                        >
+                                            {Object.keys(ROLE_INFO).map((roleKey) => (
+                                                <option key={roleKey} value={roleKey}>
+                                                    {ROLE_INFO[roleKey].name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="mb-20 d-flex align-items-center gap-10">
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            id="editUserActive"
+                                            name="is_active"
+                                            checked={editData.is_active}
+                                            onChange={handleEditChange}
+                                        />
+                                        <label className="form-check-label" htmlFor="editUserActive">
+                                            Active
+                                        </label>
+                                    </div>
+                                    <div className="d-flex align-items-center justify-content-end gap-3">
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-secondary px-20 py-10 radius-8"
+                                            data-bs-dismiss="modal"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary px-20 py-10 radius-8"
+                                            data-bs-dismiss="modal"
+                                            onClick={handleSaveUser}
+                                            disabled={isSaving}
+                                        >
+                                            {isSaving ? 'Saving...' : 'Save Changes'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

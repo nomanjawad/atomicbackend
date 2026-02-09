@@ -3,15 +3,15 @@
  * 
  * Roles:
  * - admin: Full access, can delete, manage users, assign roles
- * - editor: Can create and edit content, cannot delete
- * - viewer: Read-only access to dashboard
+ * - moderator: Can create and edit content, cannot delete or manage users
+ * - user: Read-only access to dashboard
  */
 
 // Role hierarchy (higher = more permissions)
 export const ROLES = {
     ADMIN: 'admin',
-    EDITOR: 'editor',
-    VIEWER: 'viewer'
+    MODERATOR: 'moderator',
+    USER: 'user'
 };
 
 // Role descriptions
@@ -22,14 +22,14 @@ export const ROLE_INFO = {
         color: 'danger',
         permissions: ['create', 'read', 'update', 'delete', 'manage_users', 'assign_roles']
     },
-    editor: {
-        name: 'Editor',
+    moderator: {
+        name: 'Moderator',
         description: 'Can create and edit content, but cannot delete or manage users',
         color: 'warning',
         permissions: ['create', 'read', 'update']
     },
-    viewer: {
-        name: 'Viewer',
+    user: {
+        name: 'User',
         description: 'Read-only access to view dashboard and content',
         color: 'info',
         permissions: ['read']
@@ -89,11 +89,11 @@ export const isAdmin = (userRole) => {
 };
 
 /**
- * Check if user is at least editor
+ * Check if user is at least moderator
  */
-export const isEditor = (userRole) => {
+export const isModerator = (userRole) => {
     const role = userRole?.toLowerCase();
-    return role === ROLES.ADMIN || role === ROLES.EDITOR;
+    return role === ROLES.ADMIN || role === ROLES.MODERATOR;
 };
 
 /**
@@ -121,6 +121,6 @@ export default {
     canManageUsers,
     canAssignRoles,
     isAdmin,
-    isEditor,
+    isModerator,
     getRoleBadgeClass
 };
