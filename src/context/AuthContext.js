@@ -1,6 +1,7 @@
 /**
  * Authentication Context
  * Provides authentication state and methods throughout the app
+ * Aligned with ADMIN_INTEGRATION.md API specification
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Check for existing session on mount
+    // Check for existing session on mount using GET /user/session
     useEffect(() => {
         const initAuth = async () => {
             const token = localStorage.getItem('accessToken');
@@ -29,12 +30,14 @@ export const AuthProvider = ({ children }) => {
 
             if (token && savedUser) {
                 try {
-                    // Verify token is still valid
-                    const response = await authAPI.getCurrentUser();
-                    if (response.success) {
-                        setUser(response.data);
+                    // Verify token is still valid via GET /user/session
+                    const response = await authAPI.getSession();
+                    if (response.active && response.user) {
+                        // Merge saved user data with session response
+                        const parsed = JSON.parse(savedUser);
+                        setUser({ ...parsed, role: response.user.role });
                     } else {
-                        // Token invalid, clear storage
+                        // Session inactive, clear storage
                         localStorage.removeItem('accessToken');
                         localStorage.removeItem('refreshToken');
                         localStorage.removeItem('user');
@@ -52,17 +55,33 @@ export const AuthProvider = ({ children }) => {
         initAuth();
     }, []);
 
+    /**
+     * Login via POST /user/login
+     * Response format: { message, user, session: { access_token, refresh_token, expires_at } }
+     */
     const login = useCallback(async (email, password) => {
         setIsLoading(true);
         setError(null);
         try {
             const response = await authAPI.login(email, password);
-            if (response.success) {
-                setUser(response.data.user);
+            // authAPI.login stores tokens and normalized user in localStorage
+            if (response.session) {
+                // Use normalized user from api.js, then fetch real role from session
+                let userData = response._normalizedUser;
+                try {
+                    const sessionRes = await authAPI.getSession();
+                    if (sessionRes.active && sessionRes.user) {
+                        userData = { ...userData, role: sessionRes.user.role };
+                        localStorage.setItem('user', JSON.stringify(userData));
+                    }
+                } catch (e) {
+                    // Session check failed, continue with login user data
+                }
+                setUser(userData);
                 return { success: true };
             } else {
-                setError(response.error?.message || 'Login failed');
-                return { success: false, error: response.error?.message };
+                setError('Login failed');
+                return { success: false, error: 'Login failed' };
             }
         } catch (err) {
             const errorMessage = err.message || 'Login failed';
@@ -73,23 +92,20 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    /**
+     * Signup via POST /user/signup
+     */
     const signup = useCallback(async (email, password, fullName) => {
         setIsLoading(true);
         setError(null);
         try {
             const response = await authAPI.signup(email, password, fullName);
-            if (response.success) {
-                // Auto-login after signup if session is returned
-                if (response.data.session) {
-                    localStorage.setItem('accessToken', response.data.session.accessToken);
-                    localStorage.setItem('refreshToken', response.data.session.refreshToken);
-                    localStorage.setItem('user', JSON.stringify(response.data.user));
-                    setUser(response.data.user);
-                }
+            // authAPI.signup stores tokens if session is returned
+            if (response.user) {
+                setUser(response.user);
                 return { success: true };
             } else {
-                setError(response.error?.message || 'Signup failed');
-                return { success: false, error: response.error?.message };
+                return { success: true }; // User created but may need email confirmation
             }
         } catch (err) {
             const errorMessage = err.message || 'Signup failed';

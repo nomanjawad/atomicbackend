@@ -64,7 +64,7 @@ const SignUpLayer = () => {
         <div className="max-w-464-px mx-auto w-100">
           <div>
             <Link to="/" className="mb-40 max-w-290-px">
-              <img src="assets/images/logo.png" alt="" />
+              <span className="text-xl fw-semibold">Skytech Solution</span>
             </Link>
             <h4 className="mb-12">Create your Account</h4>
             <p className="mb-32 text-secondary-light text-lg">

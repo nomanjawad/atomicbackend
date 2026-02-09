@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react/dist/iconify.js';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { profilesAPI } from '../services/api';
+import { userAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { canDelete, canManageUsers } from '../utils/permissions';
 
@@ -24,12 +24,8 @@ const UsersListLayer = () => {
     const fetchUsers = async () => {
         try {
             setIsLoading(true);
-            const response = await profilesAPI.getAll();
-            if (response.success) {
-                setUsers(response.data || []);
-            } else {
-                setError('Failed to load users');
-            }
+            const response = await userAPI.getAll();
+            setUsers(response.users || []);
         } catch (err) {
             setError(err.message || 'Failed to load users');
         } finally {
@@ -45,12 +41,8 @@ const UsersListLayer = () => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
 
         try {
-            const response = await profilesAPI.delete(userId);
-            if (response.success) {
-                setUsers(users.filter(u => u.id !== userId));
-            } else {
-                alert('Failed to delete user');
-            }
+            await userAPI.delete(userId);
+            setUsers(users.filter(u => u.id !== userId));
         } catch (err) {
             alert(err.message || 'Failed to delete user');
         }
@@ -72,11 +64,11 @@ const UsersListLayer = () => {
 
     const filteredUsers = users.filter(user => {
         const matchesSearch = !searchTerm ||
-            user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = !selectedStatus ||
-            (selectedStatus === 'Active' && user.isActive) ||
-            (selectedStatus === 'Inactive' && !user.isActive);
+            (selectedStatus === 'Active' && user.is_active) ||
+            (selectedStatus === 'Inactive' && !user.is_active);
         return matchesSearch && matchesStatus;
     });
 
@@ -173,23 +165,23 @@ const UsersListLayer = () => {
                                 filteredUsers.map((user, index) => (
                                     <tr key={user.id}>
                                         <td>{String(index + 1).padStart(2, '0')}</td>
-                                        <td>{formatDate(user.createdAt)}</td>
+                                        <td>{formatDate(user.created_at)}</td>
                                         <td>
                                             <div className="d-flex align-items-center">
-                                                {user.avatarUrl ? (
+                                                {user.avatar_url ? (
                                                     <img
-                                                        src={user.avatarUrl}
-                                                        alt={user.fullName}
+                                                        src={user.avatar_url}
+                                                        alt={user.full_name}
                                                         className="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden"
                                                     />
                                                 ) : (
                                                     <span className="w-40-px h-40-px bg-primary-100 text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-12 fw-semibold">
-                                                        {getInitials(user.fullName)}
+                                                        {getInitials(user.full_name)}
                                                     </span>
                                                 )}
                                                 <div className="flex-grow-1">
                                                     <span className="text-md mb-0 fw-normal text-secondary-light">
-                                                        {user.fullName || 'No Name'}
+                                                        {user.full_name || 'No Name'}
                                                     </span>
                                                 </div>
                                             </div>
@@ -205,11 +197,11 @@ const UsersListLayer = () => {
                                             </span>
                                         </td>
                                         <td className="text-center">
-                                            <span className={`px-24 py-4 radius-4 fw-medium text-sm ${user.isActive !== false
+                                            <span className={`px-24 py-4 radius-4 fw-medium text-sm ${user.is_active !== false
                                                 ? 'bg-success-focus text-success-600 border border-success-main'
                                                 : 'bg-neutral-200 text-neutral-600 border border-neutral-400'
                                                 }`}>
-                                                {user.isActive !== false ? 'Active' : 'Inactive'}
+                                                {user.is_active !== false ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="text-center">

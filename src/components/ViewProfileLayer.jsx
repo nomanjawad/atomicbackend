@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react/dist/iconify.js';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { profilesAPI, authAPI } from '../services/api';
+import { authAPI, userAPI } from '../services/api';
 
 const ViewProfileLayer = () => {
     const { user } = useAuth();
@@ -31,7 +31,7 @@ const ViewProfileLayer = () => {
     useEffect(() => {
         if (user) {
             setFormData({
-                fullName: user.fullName || '',
+                fullName: user.full_name || '',
                 email: user.email || '',
                 phone: user.phone || '',
                 department: user.department || '',
@@ -59,16 +59,11 @@ const ViewProfileLayer = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await profilesAPI.update(user.id, {
-                fullName: formData.fullName,
-                avatarUrl: user.avatarUrl // preserve existing avatar
+            await authAPI.updateProfile({
+                full_name: formData.fullName
             });
 
-            if (response.success) {
-                setMessage({ type: 'success', text: 'Profile updated successfully!' });
-            } else {
-                setMessage({ type: 'error', text: 'Failed to update profile' });
-            }
+            setMessage({ type: 'success', text: 'Profile updated successfully!' });
         } catch (error) {
             setMessage({ type: 'error', text: error.message || 'Failed to update profile' });
         } finally {
@@ -91,14 +86,12 @@ const ViewProfileLayer = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await authAPI.updatePassword(passwordData.newPassword);
+            await userAPI.update(user.id, {
+                password: passwordData.newPassword
+            });
 
-            if (response.success) {
-                setMessage({ type: 'success', text: 'Password changed successfully!' });
-                setPasswordData({ newPassword: '', confirmPassword: '' });
-            } else {
-                setMessage({ type: 'error', text: 'Failed to change password' });
-            }
+            setMessage({ type: 'success', text: 'Password changed successfully!' });
+            setPasswordData({ newPassword: '', confirmPassword: '' });
         } catch (error) {
             setMessage({ type: 'error', text: error.message || 'Failed to change password' });
         } finally {
@@ -118,18 +111,18 @@ const ViewProfileLayer = () => {
                     <div className="bg-primary-600" style={{ height: '120px' }}></div>
                     <div className="pb-24 ms-16 mb-24 me-16 mt--100">
                         <div className="text-center border border-top-0 border-start-0 border-end-0">
-                            {user?.avatarUrl ? (
+                            {user?.avatar_url ? (
                                 <img
-                                    src={user.avatarUrl}
+                                    src={user.avatar_url}
                                     alt="User Avatar"
                                     className="border br-white border-width-2-px w-200-px h-200-px rounded-circle object-fit-cover"
                                 />
                             ) : (
                                 <div className="border br-white border-width-2-px w-200-px h-200-px rounded-circle bg-primary-100 d-flex justify-content-center align-items-center mx-auto" style={{ fontSize: '64px' }}>
-                                    <span className="text-primary-600 fw-bold">{getInitials(user?.fullName)}</span>
+                                    <span className="text-primary-600 fw-bold">{getInitials(user?.full_name)}</span>
                                 </div>
                             )}
-                            <h6 className="mb-0 mt-16">{user?.fullName || 'User'}</h6>
+                            <h6 className="mb-0 mt-16">{user?.full_name || 'User'}</h6>
                             <span className="text-secondary-light mb-16">{user?.email || ''}</span>
                         </div>
                         <div className="mt-24">
@@ -137,7 +130,7 @@ const ViewProfileLayer = () => {
                             <ul>
                                 <li className="d-flex align-items-center gap-1 mb-12">
                                     <span className="w-30 text-md fw-semibold text-primary-light">Full Name</span>
-                                    <span className="w-70 text-secondary-light fw-medium">: {user?.fullName || 'Not set'}</span>
+                                    <span className="w-70 text-secondary-light fw-medium">: {user?.full_name || 'Not set'}</span>
                                 </li>
                                 <li className="d-flex align-items-center gap-1 mb-12">
                                     <span className="w-30 text-md fw-semibold text-primary-light">Email</span>

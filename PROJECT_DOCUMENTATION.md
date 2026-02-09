@@ -1,4 +1,4 @@
-# AMCO Admin Panel - Project Documentation
+# Skytech Solution Admin Panel - Project Documentation
 
 ## Overview
 

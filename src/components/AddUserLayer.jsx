@@ -39,17 +39,13 @@ const AddUserLayer = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            const response = await authAPI.signup(formData.email, formData.password, formData.fullName, formData.role);
+            await authAPI.signup(formData.email, formData.password, formData.fullName, formData.role);
 
-            if (response.success) {
-                setMessage({ type: 'success', text: 'User created successfully!' });
-                // Redirect after short delay
-                setTimeout(() => {
-                    navigate('/users-list');
-                }, 1500);
-            } else {
-                setMessage({ type: 'error', text: response.error?.message || 'Failed to create user' });
-            }
+            setMessage({ type: 'success', text: 'User created successfully!' });
+            // Redirect after short delay
+            setTimeout(() => {
+                navigate('/users-list');
+            }, 1500);
         } catch (error) {
             setMessage({ type: 'error', text: error.message || 'Failed to create user' });
         } finally {

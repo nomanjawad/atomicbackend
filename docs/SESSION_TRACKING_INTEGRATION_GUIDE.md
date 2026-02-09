@@ -6,7 +6,7 @@
 
 ## Overview
 
-The AMCO Admin backend tracks visitor analytics at `POST /api/analytics/track`. To enable **bounce rate** and **pages per session** metrics, you must:
+The Skytech Solution Admin backend tracks visitor analytics at `POST /api/analytics/track`. To enable **bounce rate** and **pages per session** metrics, you must:
 
 1. Generate a unique session ID per browser session
 2. Send this session ID with every page view tracking call

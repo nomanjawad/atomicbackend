@@ -116,21 +116,7 @@ const MasterLayout = ({ children }) => {
         </button>
         <div>
           <Link to="/" className="sidebar-logo">
-            <img
-              src="assets/images/amco-logo.svg"
-              alt="site logo"
-              className="light-logo"
-            />
-            <img
-              src="assets/images/amco-logo.png"
-              alt="site logo"
-              className="dark-logo"
-            />
-            <img
-              src="assets/images/logo-icon.png"
-              alt="site logo"
-              className="logo-icon"
-            />
+            <span className="app-logo-text">Skytech Solution</span>
           </Link>
         </div>
         <div className="sidebar-menu-area">
@@ -1980,15 +1966,15 @@ const MasterLayout = ({ children }) => {
                     type="button"
                     data-bs-toggle="dropdown"
                   >
-                    {user?.avatarUrl ? (
+                    {user?.avatar_url ? (
                       <img
-                        src={user.avatarUrl}
+                        src={user.avatar_url}
                         alt="user avatar"
                         className="w-40-px h-40-px object-fit-cover rounded-circle"
                       />
                     ) : (
                       <span className="w-40-px h-40-px bg-primary-600 text-white rounded-circle d-flex justify-content-center align-items-center fw-semibold">
-                        {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                        {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
                       </span>
                     )}
                   </button>
@@ -1996,7 +1982,7 @@ const MasterLayout = ({ children }) => {
                     <div className="py-12 px-16 radius-8 bg-primary-50 mb-16 d-flex align-items-center justify-content-between gap-2">
                       <div>
                         <h6 className="text-lg text-primary-light fw-semibold mb-2">
-                          {user?.fullName || 'User'}
+                          {user?.full_name || 'User'}
                         </h6>
                         <span className="text-secondary-light fw-medium text-sm">
                           {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User'}

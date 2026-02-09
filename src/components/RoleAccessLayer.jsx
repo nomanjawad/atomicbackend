@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react/dist/iconify.js';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { profilesAPI } from '../services/api';
+import { userAPI } from '../services/api';
 import { ROLE_INFO, getRoleBadgeClass, isAdmin } from '../utils/permissions';
 
 const RoleAccessLayer = () => {
@@ -22,12 +22,8 @@ const RoleAccessLayer = () => {
     const fetchUsers = async () => {
         try {
             setIsLoading(true);
-            const response = await profilesAPI.getAll();
-            if (response.success) {
-                setUsers(response.data || []);
-            } else {
-                setError('Failed to load users');
-            }
+            const response = await userAPI.getAll();
+            setUsers(response.users || []);
         } catch (err) {
             setError(err.message || 'Failed to load users');
         } finally {
@@ -44,22 +40,18 @@ const RoleAccessLayer = () => {
         if (!editingUser || !currentUserIsAdmin) return;
 
         try {
-            const response = await profilesAPI.update(editingUser.id, {
+            await userAPI.update(editingUser.id, {
                 role: selectedRole
             });
 
-            if (response.success) {
-                setUsers(users.map(u =>
-                    u.id === editingUser.id ? { ...u, role: selectedRole } : u
-                ));
-                setMessage({ type: 'success', text: `Role updated to ${selectedRole} successfully!` });
-                setEditingUser(null);
+            setUsers(users.map(u =>
+                u.id === editingUser.id ? { ...u, role: selectedRole } : u
+            ));
+            setMessage({ type: 'success', text: `Role updated to ${selectedRole} successfully!` });
+            setEditingUser(null);
 
-                // Clear message after 3 seconds
-                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-            } else {
-                setMessage({ type: 'error', text: 'Failed to update role' });
-            }
+            // Clear message after 3 seconds
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (err) {
             setMessage({ type: 'error', text: err.message || 'Failed to update role' });
         }
@@ -71,19 +63,15 @@ const RoleAccessLayer = () => {
         const newStatus = !currentStatus;
 
         try {
-            const response = await profilesAPI.update(userId, {
-                isActive: newStatus
+            await userAPI.update(userId, {
+                is_active: newStatus
             });
 
-            if (response.success) {
-                setUsers(users.map(u =>
-                    u.id === userId ? { ...u, isActive: newStatus } : u
-                ));
-                setMessage({ type: 'success', text: `User ${newStatus ? 'activated' : 'deactivated'} successfully!` });
-                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
-            } else {
-                setMessage({ type: 'error', text: 'Failed to update status' });
-            }
+            setUsers(users.map(u =>
+                u.id === userId ? { ...u, is_active: newStatus } : u
+            ));
+            setMessage({ type: 'success', text: `User ${newStatus ? 'activated' : 'deactivated'} successfully!` });
+            setTimeout(() => setMessage({ type: '', text: '' }), 3000);
         } catch (err) {
             setMessage({ type: 'error', text: err.message || 'Failed to update status' });
         }
@@ -102,22 +90,6 @@ const RoleAccessLayer = () => {
             year: 'numeric'
         });
     };
-
-    if (!currentUserIsAdmin) {
-        return (
-            <div className="card h-100 p-0 radius-12">
-                <div className="card-body p-24 text-center">
-                    <div className="text-danger mb-16">
-                        <Icon icon="mdi:shield-lock" style={{ fontSize: '64px' }} />
-                    </div>
-                    <h5 className="mb-8">Access Denied</h5>
-                    <p className="text-secondary-light">
-                        Only administrators can access the Role & Access management page.
-                    </p>
-                </div>
-            </div>
-        );
-    }
 
     if (isLoading) {
         return (
@@ -229,20 +201,20 @@ const RoleAccessLayer = () => {
                                             <td>{String(index + 1).padStart(2, '0')}</td>
                                             <td>
                                                 <div className="d-flex align-items-center">
-                                                    {u.avatarUrl ? (
+                                                    {u.avatar_url ? (
                                                         <img
-                                                            src={u.avatarUrl}
-                                                            alt={u.fullName}
+                                                            src={u.avatar_url}
+                                                            alt={u.full_name}
                                                             className="w-40-px h-40-px rounded-circle flex-shrink-0 me-12 overflow-hidden"
                                                         />
                                                     ) : (
                                                         <span className="w-40-px h-40-px bg-primary-100 text-primary-600 rounded-circle d-flex justify-content-center align-items-center flex-shrink-0 me-12 fw-semibold">
-                                                            {getInitials(u.fullName)}
+                                                            {getInitials(u.full_name)}
                                                         </span>
                                                     )}
                                                     <div className="flex-grow-1">
                                                         <span className="text-md fw-medium">
-                                                            {u.fullName || 'No Name'}
+                                                            {u.full_name || 'No Name'}
                                                         </span>
                                                         {u.id === user?.id && (
                                                             <span className="badge bg-primary-100 text-primary-600 ms-8 text-xs">You</span>
@@ -266,20 +238,20 @@ const RoleAccessLayer = () => {
                                                             type="checkbox"
                                                             role="switch"
                                                             id={`status-switch-${u.id}`}
-                                                            checked={u.isActive !== false}
-                                                            onChange={() => handleToggleStatus(u.id, u.isActive !== false)}
+                                                            checked={u.is_active !== false}
+                                                            onChange={() => handleToggleStatus(u.id, u.is_active !== false)}
                                                             style={{
                                                                 width: '40px',
                                                                 height: '20px',
                                                                 cursor: 'pointer',
-                                                                backgroundColor: u.isActive !== false ? '#45b369' : '#dc3545',
-                                                                borderColor: u.isActive !== false ? '#45b369' : '#dc3545'
+                                                                backgroundColor: u.is_active !== false ? '#45b369' : '#dc3545',
+                                                                borderColor: u.is_active !== false ? '#45b369' : '#dc3545'
                                                             }}
                                                         />
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="text-secondary-light">{formatDate(u.createdAt)}</td>
+                                            <td className="text-secondary-light">{formatDate(u.created_at)}</td>
                                             <td className="text-center">
                                                 {u.id === user?.id ? (
                                                     <span className="text-secondary-light text-sm">—</span>
@@ -331,19 +303,19 @@ const RoleAccessLayer = () => {
                             {editingUser && (
                                 <>
                                     <div className="d-flex align-items-center gap-12 mb-20 p-16 bg-neutral-50 radius-8">
-                                        {editingUser.avatarUrl ? (
+                                        {editingUser.avatar_url ? (
                                             <img
-                                                src={editingUser.avatarUrl}
-                                                alt={editingUser.fullName}
+                                                src={editingUser.avatar_url}
+                                                alt={editingUser.full_name}
                                                 className="w-48-px h-48-px rounded-circle"
                                             />
                                         ) : (
                                             <span className="w-48-px h-48-px bg-primary-100 text-primary-600 rounded-circle d-flex justify-content-center align-items-center fw-semibold">
-                                                {getInitials(editingUser.fullName)}
+                                                {getInitials(editingUser.full_name)}
                                             </span>
                                         )}
                                         <div>
-                                            <h6 className="mb-0">{editingUser.fullName}</h6>
+                                            <h6 className="mb-0">{editingUser.full_name}</h6>
                                             <span className="text-sm text-secondary-light">{editingUser.email}</span>
                                         </div>
                                     </div>

@@ -29,48 +29,37 @@ const SignInLayer = () => {
   }, [])
 
   const checkServiceStatus = async () => {
-    // Check API Health
+    // Check API Health via GET /api/health
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL?.replace('/api', '')}/health`)
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/health`)
       const data = await response.json()
 
-      if (data.status === 'healthy') {
+      if (data.ok && data.status?.healthy) {
         setServiceStatus(prev => ({
           ...prev,
-          api: { status: 'online', message: `Online (${Math.round(data.uptime)}s uptime)` }
+          api: { status: 'online', message: 'Online' }
+        }))
+
+        // Check database/Supabase status from health response
+        const supabaseOk = data.status?.services?.supabaseAPI?.ok && data.status?.services?.supabaseAuth?.ok
+        setServiceStatus(prev => ({
+          ...prev,
+          database: {
+            status: supabaseOk ? 'online' : 'offline',
+            message: supabaseOk ? 'Connected' : 'Supabase service issue'
+          }
         }))
       } else {
         setServiceStatus(prev => ({
           ...prev,
-          api: { status: 'offline', message: 'Unhealthy response' }
+          api: { status: 'offline', message: 'Unhealthy response' },
+          database: { status: 'offline', message: 'Unknown' }
         }))
       }
     } catch (err) {
       setServiceStatus(prev => ({
         ...prev,
-        api: { status: 'offline', message: 'Connection failed' }
-      }))
-    }
-
-    // Check Database/Auth connectivity
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}`)
-      const data = await response.json()
-
-      if (data.name) {
-        setServiceStatus(prev => ({
-          ...prev,
-          database: { status: 'online', message: 'Connected' }
-        }))
-      } else {
-        setServiceStatus(prev => ({
-          ...prev,
-          database: { status: 'offline', message: 'No response' }
-        }))
-      }
-    } catch (err) {
-      setServiceStatus(prev => ({
-        ...prev,
+        api: { status: 'offline', message: 'Connection failed' },
         database: { status: 'offline', message: 'Connection failed' }
       }))
     }
@@ -120,7 +109,7 @@ const SignInLayer = () => {
         <div className="max-w-464-px mx-auto w-100">
           <div>
             <Link to="/" className="mb-40 max-w-290-px">
-              <img src="assets/images/logo.png" alt="" />
+              <span className="text-xl fw-semibold">Skytech Solution</span>
             </Link>
             <h4 className="mb-12">Sign In to your Account</h4>
             <p className="mb-32 text-secondary-light text-lg">

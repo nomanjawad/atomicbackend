@@ -40,7 +40,7 @@ const ComingSoonLayer = () => {
       <div className='container container--xl'>
         <div className='d-flex align-items-center justify-content-between py-24'>
           <Link to='/'>
-            <img src='assets/images/logo.png' alt='Logo' />
+            <span className='text-xl fw-semibold'>Skytech Solution</span>
           </Link>
           <Link to='/' className='btn btn-outline-primary-600 text-sm'>
             Go To Home

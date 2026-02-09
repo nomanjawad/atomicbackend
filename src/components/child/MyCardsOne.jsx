@@ -40,7 +40,7 @@ const MyCardsOne = () => {
                                     <div className="d-flex flex-column justify-content-between h-100">
                                         <div className="d-flex align-items-center justify-content-between flex-wrap">
                                             <h6 className="text-white mb-0">Master Card</h6>
-                                            <img src="assets/images/card/card-logo.png" alt="" />
+                                            <span className="text-white text-xs fw-semibold">Skytech Solution</span>
                                         </div>
                                         <div>
                                             <span className="text-white text-xs fw-normal text-opacity-75">
@@ -79,7 +79,7 @@ const MyCardsOne = () => {
                                     <div className="d-flex flex-column justify-content-between h-100">
                                         <div className="d-flex align-items-center justify-content-between flex-wrap">
                                             <h6 className="text-white mb-0">Master Card</h6>
-                                            <img src="assets/images/card/card-logo.png" alt="" />
+                                            <span className="text-white text-xs fw-semibold">Skytech Solution</span>
                                         </div>
                                         <div>
                                             <span className="text-white text-xs fw-normal text-opacity-75">
@@ -118,7 +118,7 @@ const MyCardsOne = () => {
                                     <div className="d-flex flex-column justify-content-between h-100">
                                         <div className="d-flex align-items-center justify-content-between flex-wrap">
                                             <h6 className="text-white mb-0">Master Card</h6>
-                                            <img src="assets/images/card/card-logo.png" alt="" />
+                                            <span className="text-white text-xs fw-semibold">Skytech Solution</span>
                                         </div>
                                         <div>
                                             <span className="text-white text-xs fw-normal text-opacity-75">
