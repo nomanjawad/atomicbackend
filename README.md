@@ -1,6 +1,6 @@
-# Admin Dashboard Template
+# Admin Dashboard
 
-A comprehensive, feature-rich React admin dashboard template built with React 18, Bootstrap 5, and modern technologies. This template provides an extensive collection of pre-built UI components, pages, and examples to accelerate your admin panel development.
+A modern, full-featured admin dashboard built with React, Tailwind CSS, and Node.js backend integration.
 
 ## 📋 Project Overview
 
