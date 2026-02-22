@@ -14,7 +14,6 @@ import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Pages from "./pages/Pages";
 import PageEditor from "./components/pages/PageEditor";
-import ContactPageEditor from "./components/pages/ContactPageEditor";
 import PageHistory from "./pages/PageHistory";
 
 // Create QueryClient
@@ -52,12 +51,7 @@ function App() {
             {/* Pages routes */}
             <Route path="pages" element={<Pages />} />
             <Route path="pages/new" element={<PageEditor />} />
-            <Route path="pages/new/contact" element={<ContactPageEditor />} />
             <Route path="pages/edit/:slug" element={<PageEditor />} />
-            <Route
-              path="pages/edit/contact/:slug"
-              element={<ContactPageEditor />}
-            />
             <Route path="pages/:slug/history" element={<PageHistory />} />
 
             {/* Placeholder routes - to be implemented */}

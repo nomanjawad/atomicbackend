@@ -1,23 +1,19 @@
-import { useState, useEffect, useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import List from '@editorjs/list';
-import Paragraph from '@editorjs/paragraph';
-import Quote from '@editorjs/quote';
 import { pageService } from '../../services/pageService';
 import { PAGE_STATUS } from '../../utils/pageConstants';
-import { SectionPlaceholder } from './SectionHelper';
+import ImageUpload from '../media/ImageUpload';
+import RichTextEditor from '../common/RichTextEditor';
+import EditorHelpText from '../common/EditorHelpText';
 
 export default function PageEditor() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const editorRef = useRef(null);
-  const [isEditorReady, setIsEditorReady] = useState(false);
   const isEdit = !!slug && slug !== 'new';
 
   const {
@@ -26,14 +22,17 @@ export default function PageEditor() {
     formState: { errors },
     reset,
     watch,
+    setValue,
   } = useForm({
     defaultValues: {
       title: '',
       slug: '',
       status: PAGE_STATUS.DRAFT,
       meta_data: {
-        description: '',
-        keywords: '',
+        meta_title: '',
+        seo_title: '',
+        meta_description: '',
+        featured_image: '',
       },
     },
   });
@@ -48,52 +47,6 @@ export default function PageEditor() {
     retry: 1,
   });
 
-  // Initialize Editor.js
-  useEffect(() => {
-    if (!editorRef.current && !isLoading) {
-      const editor = new EditorJS({
-        holder: 'editorjs',
-        placeholder: 'Start building your page content...',
-        tools: {
-          header: {
-            class: Header,
-            config: {
-              placeholder: 'Enter a header',
-              levels: [1, 2, 3, 4],
-              defaultLevel: 2,
-            },
-          },
-          paragraph: {
-            class: Paragraph,
-            inlineToolbar: true,
-          },
-          list: {
-            class: List,
-            inlineToolbar: true,
-          },
-          quote: Quote,
-          section: {
-            class: SectionPlaceholder,
-            config: {},
-          },
-        },
-        data: pageData?.data || { blocks: [] },
-        onReady: () => {
-          setIsEditorReady(true);
-        },
-      });
-
-      editorRef.current = editor;
-    }
-
-    return () => {
-      if (editorRef.current && typeof editorRef.current.destroy === 'function') {
-        editorRef.current.destroy();
-        editorRef.current = null;
-      }
-    };
-  }, [isLoading, pageData]);
-
   // Populate form when editing
   useEffect(() => {
     if (pageData) {
@@ -102,10 +55,10 @@ export default function PageEditor() {
         slug: pageData.slug || '',
         status: pageData.status || PAGE_STATUS.DRAFT,
         meta_data: {
-          description: pageData.meta_data?.description || '',
-          keywords: Array.isArray(pageData.meta_data?.keywords)
-            ? pageData.meta_data.keywords.join(', ')
-            : '',
+          meta_title: pageData.meta_data?.meta_title || '',
+          seo_title: pageData.meta_data?.seo_title || '',
+          meta_description: pageData.meta_data?.meta_description || '',
+          featured_image: pageData.meta_data?.featured_image || '',
         },
       });
     }
@@ -121,15 +74,12 @@ export default function PageEditor() {
 
   useEffect(() => {
     if (!isEdit && title) {
-      const currentSlug = watch('slug');
-      if (!currentSlug) {
-        reset((formValues) => ({
-          ...formValues,
-          slug: generateSlug(title),
-        }));
+      const currentForm = watch();
+      if (!currentForm.slug) {
+        setValue('slug', generateSlug(title));
       }
     }
-  }, [title, isEdit, watch, reset]);
+  }, [title, isEdit, setValue, watch]);
 
   // Create/Update mutation
   const saveMutation = useMutation({
@@ -140,12 +90,12 @@ export default function PageEditor() {
         title: data.title,
         slug: data.slug,
         status: data.status,
-        data: editorData,
+        content: editorData,
         meta_data: {
-          description: data.meta_data.description,
-          keywords: data.meta_data.keywords
-            ? data.meta_data.keywords.split(',').map(k => k.trim())
-            : [],
+          meta_title: data.meta_data.meta_title || data.title,
+          seo_title: data.meta_data.seo_title || data.title,
+          meta_description: data.meta_data.meta_description,
+          featured_image: data.meta_data.featured_image,
         },
       };
 
@@ -166,8 +116,8 @@ export default function PageEditor() {
     },
   });
 
-  const onSubmit = (data) => {
-    if (!isEditorReady) {
+  const onSubmit = async (data) => {
+    if (!editorRef.current || !editorRef.current.isReady()) {
       toast.error('Editor is still loading...');
       return;
     }
@@ -267,53 +217,88 @@ export default function PageEditor() {
 
         {/* SEO Metadata Card */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">SEO Metadata</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">SEO & Metadata</h2>
 
-          {/* Description */}
+          {/* Meta Title */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="meta_title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Meta Title
+            </label>
+            <input
+              type="text"
+              id="meta_title"
+              {...register('meta_data.meta_title')}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Page Title | Your Site Name"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Browser tab title. If empty, page title will be used.
+            </p>
+          </div>
+
+          {/* SEO Title */}
+          <div>
+            <label htmlFor="seo_title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              SEO Title
+            </label>
+            <input
+              type="text"
+              id="seo_title"
+              {...register('meta_data.seo_title')}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+              placeholder="Keyword Rich Title for Search Engines"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Optimized title for SEO. Recommended: under 60 characters.
+            </p>
+          </div>
+
+          {/* Meta Description */}
+          <div>
+            <label htmlFor="meta_description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Meta Description
             </label>
             <textarea
-              id="description"
-              {...register('meta_data.description')}
+              id="meta_description"
+              {...register('meta_data.meta_description')}
               rows="3"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-              placeholder="Brief description for search engines"
+              placeholder="Brief description for search engines and social media"
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
               Recommended: 150-160 characters
             </p>
           </div>
 
-          {/* Keywords */}
-          <div>
-            <label htmlFor="keywords" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Keywords
-            </label>
-            <input
-              type="text"
-              id="keywords"
-              {...register('meta_data.keywords')}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
-              placeholder="keyword1, keyword2, keyword3"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Comma-separated keywords
-            </p>
-          </div>
+          {/* Featured Image */}
+          <ImageUpload
+            label="Featured Image"
+            value={watch('meta_data.featured_image')}
+            onChange={(url) => setValue('meta_data.featured_image', url)}
+            folder="pages"
+            className="mt-4"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Main image for social media sharing (Open Graph, Twitter Cards)
+          </p>
         </div>
 
         {/* Content Editor Card */}
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Page Content</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Use the editor below to build your page. Add sections by typing "/" and selecting "Section" to add schema-validated content blocks.
-          </p>
-          <div
-            id="editorjs"
-            className="prose dark:prose-invert max-w-none min-h-[400px] border border-gray-300 dark:border-gray-600 rounded-lg p-4"
-          />
+          <EditorHelpText />
+          <div className="mt-4">
+            {!isLoading && (
+              <RichTextEditor
+                ref={editorRef}
+                holderId="page-editor"
+                initialData={pageData?.content || { blocks: [] }}
+                uploadFolder="pages"
+                placeholder="Start writing your page content or press Tab for commands..."
+                minHeight={400}
+              />
+            )}
+          </div>
         </div>
 
         {/* Actions */}
@@ -327,7 +312,7 @@ export default function PageEditor() {
           </button>
           <button
             type="submit"
-            disabled={saveMutation.isPending || !isEditorReady}
+            disabled={saveMutation.isPending}
             className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saveMutation.isPending ? 'Saving...' : isEdit ? 'Update Page' : 'Create Page'}
